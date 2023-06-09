@@ -21,7 +21,7 @@ class CustomButton extends StatelessWidget {
       color: Colors.blue,
       shape: const StadiumBorder(),
       disabledColor: Colors.grey,
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
         height: 55,
         child: Center(

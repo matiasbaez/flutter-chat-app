@@ -13,24 +13,24 @@ class LoginPage extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height * .9,
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                
+
                 Logo( title: 'Messenger' ),
-                  
+
                 _LoginForm(),
-                  
+
                 Labels(
                   route: 'register',
                   title: '¿No tienes una cuenta?',
                   subtitle: 'Crea una cuenta',
                 ),
-                  
+
                 Text('Términos y condiciones de uso', style: TextStyle( fontWeight: FontWeight.w200))
-                
+
               ],
             ),
           ),
@@ -41,7 +41,7 @@ class LoginPage extends StatelessWidget {
 }
 
 class _LoginForm extends StatefulWidget {
-  const _LoginForm({super.key});
+  const _LoginForm();
 
   @override
   State<_LoginForm> createState() => _LoginFormState();
@@ -75,10 +75,7 @@ class _LoginFormState extends State<_LoginForm> {
 
           CustomButton(
             text: 'Login',
-            onPressed: () {
-              print(emailCtrl.text);
-              print(passwordCtrl.text);
-            }
+            onPressed: () {}
           )
         ],
       ),
