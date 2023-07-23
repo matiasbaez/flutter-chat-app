@@ -1,8 +1,10 @@
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+import 'package:chat/services/services.dart';
 import 'package:chat/models/models.dart';
 
 class UsersPage extends StatefulWidget {
@@ -21,15 +23,22 @@ class _UsersPageState extends State<UsersPage> {
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
+
+    final authService = Provider.of<AuthService>(context);
+    final user = authService.user;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Matías Báez', style: TextStyle(color: Colors.black45)),
+        title: Text(user.name, style: const TextStyle(color: Colors.black45)),
         elevation: 1,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon( Icons.exit_to_app, color: Colors.black45 ),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, 'login');
+            AuthService.removeToken();
+          },
         ),
         actions: [
           Container(

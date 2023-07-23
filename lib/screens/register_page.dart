@@ -1,7 +1,10 @@
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'package:chat/services/services.dart';
 import 'package:chat/widgets/widgets.dart';
+import 'package:chat/helpers/alert.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({ Key? key }) : super(key: key);
@@ -55,6 +58,8 @@ class _LoginFormState extends State<_LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       margin: const EdgeInsets.only( top: 40 ),
       padding: const EdgeInsets.symmetric( horizontal: 50 ),
@@ -83,7 +88,16 @@ class _LoginFormState extends State<_LoginForm> {
 
           CustomButton(
             text: 'Register',
-            onPressed: () {}
+            onPressed: authService.loading ? null : () async {
+              FocusScope.of(context).unfocus();
+              final success = await authService.register(nameCtrl.text.trim(), emailCtrl.text.trim(), passwordCtrl.text.trim());
+              if (success) {
+                Navigator.pushReplacementNamed(context, 'users');
+                return;
+              }
+
+              showAlert(context, 'Register', 'The data provide are incomplete');
+            }
           )
         ],
       ),
