@@ -1,6 +1,8 @@
 
+import 'package:chat/services/services.dart';
 import 'package:flutter/material.dart';
 
+import 'package:chat/global/global.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 enum ServerStatus {
@@ -18,17 +20,19 @@ class SocketService extends ChangeNotifier {
   IO.Socket get socket => _socket;
   Function get emit => _socket.emit;
 
-  SocketService() {
-    _initConfig();
-  }
+  void connect() async {
+    final token = await AuthService.getToken();
 
-  void _initConfig() {
     // Dart client
     _socket = IO.io(
-      'http://localhost:3000',
+      Environment.socketURL,
       IO.OptionBuilder()
       .setTransports(['websocket']) // for Flutter or Dart VM
       // .enableAutoConnect()
+      .enableForceNew()
+      .setExtraHeaders({
+        'x-token': token
+      })
       .build()
     );
 
@@ -48,6 +52,10 @@ class SocketService extends ChangeNotifier {
 
     });
 
+  }
+
+  void disconnect() {
+    _socket.disconnect();
   }
 
 }

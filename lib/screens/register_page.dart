@@ -58,7 +58,9 @@ class _LoginFormState extends State<_LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+
     final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context, listen: false);
 
     return Container(
       margin: const EdgeInsets.only( top: 40 ),
@@ -92,6 +94,7 @@ class _LoginFormState extends State<_LoginForm> {
               FocusScope.of(context).unfocus();
               final success = await authService.register(nameCtrl.text.trim(), emailCtrl.text.trim(), passwordCtrl.text.trim());
               if (success) {
+                socketService.connect();
                 Navigator.pushReplacementNamed(context, 'users');
                 return;
               }

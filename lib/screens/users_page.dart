@@ -26,6 +26,7 @@ class _UsersPageState extends State<UsersPage> {
   Widget build(BuildContext context) {
 
     final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context, listen: false);
     final user = authService.user;
 
     return Scaffold(
@@ -36,6 +37,7 @@ class _UsersPageState extends State<UsersPage> {
         leading: IconButton(
           icon: const Icon( Icons.exit_to_app, color: Colors.black45 ),
           onPressed: () {
+            socketService.disconnect();
             Navigator.pushReplacementNamed(context, 'login');
             AuthService.removeToken();
           },
@@ -43,7 +45,9 @@ class _UsersPageState extends State<UsersPage> {
         actions: [
           Container(
             margin: const EdgeInsets.only( right: 10 ),
-            child: Icon( Icons.check_circle, color: Colors.blue[400] ),
+            child: socketService.serverStatus == ServerStatus.online
+            ? Icon( Icons.check_circle, color: Colors.blue[400] )
+            : const Icon( Icons.offline_bolt, color: Colors.red ),
             // child: Icon( Icons.offline_bolt, color: Colors.red ),
           )
         ],
