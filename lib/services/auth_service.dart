@@ -1,16 +1,20 @@
 
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:chat/global/environment.dart';
 import 'package:chat/models/models.dart';
 
+final dio = Dio(BaseOptions(
+  baseUrl: Environment.apiURL
+));
+
 class AuthService extends ChangeNotifier {
 
-  late User user;
+  User user = User(email: '', name: '', uid: '');
   bool _loading = false;
 
   // Create storage
@@ -42,25 +46,28 @@ class AuthService extends ChangeNotifier {
       'password': password
     };
 
-    final url = Uri.http('${Environment.apiURL}/login');
-    final response = await http.post(url, 
-      body: jsonEncode(data),
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+
+      final response = await dio.post(
+       '/login',
+        data: jsonEncode(data),
+      );
+
+      loading = false;
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        user = userFromMap(data["user"]);
+        await _saveToken(data["token"]);
+        return true;
       }
-    );
 
-    loading = false;
+      return false;
 
-    if (response.statusCode == 200) {
-      final data = loginResponseFromJson(response.body);
-      user = data.user;
-      await _saveToken(data.token);
-      return true;
+    } catch(error) {
+      loading = false;
+      return false;
     }
-
-    return false;
-
   }
 
   Future register( String name, String email, String password ) async {
@@ -73,47 +80,59 @@ class AuthService extends ChangeNotifier {
       'password': password
     };
 
-    final url = Uri.http('${Environment.apiURL}/register');
-    final response = await http.post(url, 
-      body: jsonEncode(data),
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+
+      final response = await dio.post(
+       '/login/new',
+        data: jsonEncode(data),
+      );
+
+      loading = false;
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        user = userFromMap(data["user"]);
+        await _saveToken(data["token"]);
+        return true;
       }
-    );
 
-    loading = false;
+      final body = response.data;
+      return body["message"];
 
-    if (response.statusCode == 200) {
-      final data = loginResponseFromJson(response.body);
-      user = data.user;
-      await _saveToken(data.token);
-      return true;
+    } catch(error) {
+      loading = false;
+      return false;
     }
-
-    final body = jsonDecode(response.body);
-    return body["message"];
-
   }
 
   Future<bool> isLoggedIn() async {
-    final token = await _storage.read(key: 'token');
-    final url = Uri.http('${Environment.apiURL}/login/renew');
-    final response = await http.post(url, 
-      headers: {
-        'Content-Type': 'application/json',
-        'x-token': 'Bearer $token'
-      }
-    );
+    try {
 
-    if (response.statusCode == 200) {
-      final data = loginResponseFromJson(response.body);
-      user = data.user;
-      await _saveToken(data.token);
-      return true;
+      final token = await _storage.read(key: "token");
+      final response = await dio.post(
+       '/login/renew',
+        options: Options(
+          headers: {
+            "x-token": token
+          }
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        user = userFromMap(data["user"]);
+        await _saveToken(data["token"]);
+        return true;
+      }
+
+      _logout();
+      return false;
+
+    } catch(error) {
+      _logout();
+      return false;
     }
 
-    _logout();
-    return false;
   }
 
   Future _saveToken(String token) async {

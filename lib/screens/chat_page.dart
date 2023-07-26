@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:chat/widgets/widgets.dart';
-
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:provider/provider.dart';
+
+import 'package:chat/services/services.dart';
+import 'package:chat/widgets/widgets.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({ Key? key }) : super(key: key);
@@ -21,12 +23,21 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   final _focusNode = FocusNode();
   bool _isWriting = false;
 
+  late AuthService authService;
+  late ChatService chatService;
+  late SocketService socketService;
+
   final List<ChatMessage> _messages = [];
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+
+    authService = Provider.of<AuthService>(context, listen: false);
+    chatService = Provider.of<ChatService>(context, listen: false);
+    socketService = Provider.of<SocketService>(context, listen: false);
+
+    socketService.socket.on('private-message', _waitingMessage);
   }
 
   @override
@@ -36,11 +47,32 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       message.animationController.dispose();
     }
 
+    socketService.socket.off('private-message');
     super.dispose();
   }
 
+  void _waitingMessage( dynamic data ) {
+    ChatMessage message = ChatMessage(
+      text: data['message'],
+      uid: data['from'],
+      animationController: AnimationController(
+        vsync: this,
+        duration: const Duration( microseconds: 300 )
+      )
+    );
+
+    setState(() {
+      _messages.insert(0, message);
+    });
+
+    message.animationController.forward();
+  }
+
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
+
+    final user = chatService.userTo;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -49,12 +81,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             CircleAvatar(
               backgroundColor: Colors.blue[100],
               maxRadius: 14,
-              child: const Text('MB', style: TextStyle( fontSize: 12 )),
+              child: Text(user.name.substring(0, 2), style: const TextStyle( fontSize: 12 )),
             ),
 
             const SizedBox(height: 3),
 
-            const Text('Matías Báez', style: TextStyle( color: Colors.black87, fontSize: 14 ),)
+            Text(user.name, style: const TextStyle( color: Colors.black87, fontSize: 14 ),)
           ],
         ),
         centerTitle: true,
@@ -146,6 +178,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
     setState(() {
       _isWriting = false;
+    });
+
+    socketService.emit('private-message', {
+      'from': authService.user.uid,
+      'to': chatService.userTo.uid,
+      'message': value
     });
   }
 

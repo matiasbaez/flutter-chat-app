@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 User userFromJson(String str) => User.fromJson(json.decode(str));
+User userFromMap(Map<String, dynamic> map) => User.fromMap(map);
 String userToJson(User data) => json.encode(data.toJson());
 
 class User {
@@ -19,6 +20,13 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
+    online: json["online"],
+    email: json["email"],
+    name: json["name"],
+    uid: json["uid"],
+  );
+
+  factory User.fromMap(Map<String, dynamic> json) => User(
     online: json["online"],
     email: json["email"],
     name: json["name"],

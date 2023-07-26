@@ -29,7 +29,12 @@ class SocketService extends ChangeNotifier {
       IO.OptionBuilder()
       .setTransports(['websocket']) // for Flutter or Dart VM
       // .enableAutoConnect()
+      // .disableAutoConnect()
+      .enableReconnection()
       .enableForceNew()
+      .setAuth({
+        'x-token': token
+      })
       .setExtraHeaders({
         'x-token': token
       })

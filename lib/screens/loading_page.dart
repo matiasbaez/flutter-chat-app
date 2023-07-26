@@ -13,9 +13,10 @@ class LoadingPage extends StatelessWidget {
     return Scaffold(
       body: FutureBuilder(
         future: checkLoggedIn(context),
+        initialData: null,
         builder: (context, snapshopt) {
-          return Center(
-            child: Text('')
+          return const Center(
+            child: Text('Loading')
           );
         }
       ),

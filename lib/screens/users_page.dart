@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'package:chat/services/services.dart';
@@ -16,17 +16,21 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
 
-  final users = [
-    User(uid: '1', name: 'Matías Báez', email: '', online: false),
-  ];
-
+  List<User> users = [];
+  final userService = UsersService();
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
+
+  @override
+  void initState() {
+    _getUsers();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
 
     final authService = Provider.of<AuthService>(context);
-    final socketService = Provider.of<SocketService>(context, listen: false);
+    final socketService = Provider.of<SocketService>(context);
     final user = authService.user;
 
     return Scaffold(
@@ -90,12 +94,18 @@ class _UsersPageState extends State<UsersPage> {
           borderRadius: BorderRadius.circular(100)
         )
       ),
+      onTap: () {
+        final chatService = Provider.of<ChatService>(context, listen: false);
+        chatService.userTo = user;
+        Navigator.pushNamed(context, 'chat');
+      },
     );
   }
 
   void _getUsers() async{
     // monitor network fetch
-    await Future.delayed(const Duration(milliseconds: 1000));
+    users = await userService.getUsers();
+    setState(() {});
     // if failed,use refreshFailed()
     _refreshController.refreshCompleted();
   }
