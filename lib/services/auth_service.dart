@@ -36,7 +36,7 @@ class AuthService extends ChangeNotifier {
     const storage = FlutterSecureStorage();
     await storage.delete(key: 'token');
   }
-  
+
   Future<bool> login( String email, String password ) async {
 
     loading = true;

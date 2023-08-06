@@ -1,6 +1,7 @@
 
 import 'dart:io';
 
+import 'package:chat/models/models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -38,6 +39,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     socketService = Provider.of<SocketService>(context, listen: false);
 
     socketService.socket.on('private-message', _waitingMessage);
+
+    _loadMessages(chatService.userTo.uid);
   }
 
   @override
@@ -49,6 +52,18 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
     socketService.socket.off('private-message');
     super.dispose();
+  }
+
+  _loadMessages(String userId) async {
+    List<Message> chat = await chatService.getChat(userId);
+    final messages = chat.map((chat) => ChatMessage(
+      text: chat.message,
+      uid: chat.from,
+      animationController: AnimationController(vsync: this, duration: Duration( milliseconds: 0 ))..forward()
+    ));
+
+    _messages.insertAll(0, messages);
+    setState(() {});
   }
 
   void _waitingMessage( dynamic data ) {
@@ -169,7 +184,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
     final newMessage = ChatMessage(
       text: value,
-      uid: '1',
+      uid: authService.user.uid,
       animationController: AnimationController(vsync: this, duration: const Duration( milliseconds: 400 )),
     );
 
